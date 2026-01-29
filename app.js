@@ -10,6 +10,37 @@ const app = express();
 // Middleware
 app.use(express.json());
 
+// DEBUG ALL ROUTES
+app.get("/debug-all-routes", (req, res) => {
+  const routes = [];
+  
+  app._router.stack.forEach(middleware => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        method: Object.keys(middleware.route.methods)[0]
+      });
+    } else if (middleware.name === 'router') {
+      middleware.handle.stack.forEach(handler => {
+        if (handler.route) {
+          routes.push({
+            path: handler.route.path,
+            method: Object.keys(handler.route.methods)[0],
+            source: 'router'
+          });
+        }
+      });
+    }
+  });
+  
+  res.json({
+    status: "Backend running",
+    totalRoutes: routes.length,
+    routes: routes,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
@@ -21,7 +52,8 @@ console.log("=== LOADING ROUTES ===");
 try {
   const reelsRoute = require("./routes/reels");
   console.log("✓ Reels route loaded successfully");
-  app.use("/api", reelsRoute);
+  // CORRECTED: Mount at /api/reels instead of /api
+  app.use("/api/reels", reelsRoute);
 } catch (error) {
   console.error("✗ Failed to load reels route:", error.message);
   console.error("Full error:", error);
