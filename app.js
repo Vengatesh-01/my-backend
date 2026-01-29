@@ -25,14 +25,6 @@ try {
 } catch (error) {
   console.error("✗ Failed to load reels route:", error.message);
   console.error("Full error:", error);
-  
-  // Fallback route
-  app.use("/api/reels", (req, res) => {
-    res.json({ 
-      error: "Reels route failed to load",
-      message: error.message 
-    });
-  });
 }
 
 // Gaming Hub Redundancy
