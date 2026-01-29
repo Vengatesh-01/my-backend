@@ -28,27 +28,27 @@ app.use(express.json());
 app.get("/debug-all-routes", (req, res) => {
   const routes = [];
 
-  app._router.stack.forEach(middleware => {
-    if (middleware.route) {
-      routes.push({
-        path: middleware.route.path,
-        method: Object.keys(middleware.route.methods)[0]
-      });
-    } else if (middleware.name === 'router') {
-      middleware.handle.stack.forEach(handler => {
-        if (handler.route) {
+  function parseStack(stack) {
+    stack.forEach(function (r) {
+      if (r.route) {
+        Object.keys(r.route.methods).forEach(method => {
           routes.push({
-            path: handler.route.path,
-            method: Object.keys(handler.route.methods)[0],
-            source: 'router'
+            path: r.route.path,
+            method: method.toUpperCase()
           });
-        }
-      });
-    }
-  });
+        });
+      } else if (r.name === 'router' && r.handle && r.handle.stack) {
+        parseStack(r.handle.stack);
+      }
+    });
+  }
+
+  if (app._router && app._router.stack) {
+    parseStack(app._router.stack);
+  }
 
   res.json({
-    status: "Backend running",
+    status: "Reelio Backend Live",
     totalRoutes: routes.length,
     routes: routes,
     timestamp: new Date().toISOString()
@@ -114,7 +114,7 @@ app.get('/gaming-hub', (req, res) => {
 
 // Basic Route
 app.get('/', (req, res) => {
-  res.send('Backend running');
+  res.send('Reelio Backend Live');
 });
 
 // Socket IO Connection logic
