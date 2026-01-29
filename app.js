@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const path = require('path');
 
 dotenv.config();
 
@@ -15,12 +16,26 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error(err));
 
-// Routes
-const reelsRoute = require("./routes/reels");
-app.use("/api", reelsRoute);
+// Routes - with error handling
+console.log("=== LOADING ROUTES ===");
+try {
+  const reelsRoute = require("./routes/reels");
+  console.log("✓ Reels route loaded successfully");
+  app.use("/api", reelsRoute);
+} catch (error) {
+  console.error("✗ Failed to load reels route:", error.message);
+  console.error("Full error:", error);
+  
+  // Fallback route
+  app.use("/api/reels", (req, res) => {
+    res.json({ 
+      error: "Reels route failed to load",
+      message: error.message 
+    });
+  });
+}
 
 // Gaming Hub Redundancy
-const path = require('path');
 const gamingHubPath = path.resolve(__dirname, '..', 'GamingHub');
 app.use('/gaming-hub', express.static(gamingHubPath));
 app.get('/gaming-hub', (req, res) => {
