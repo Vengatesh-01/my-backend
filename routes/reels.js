@@ -1,5 +1,4 @@
 const express = require("express");
-const fetch = require("node-fetch");
 const Reel = require("../models/Reel");
 const router = express.Router();
 
@@ -61,3 +60,4 @@ router.get("/", async (req, res) => {
 });
 
 module.exports = router;
+
