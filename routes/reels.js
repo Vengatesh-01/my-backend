@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 const Reel = require("../models/Reel");
 const router = express.Router();
 
-const YOUTUBE_API_KEY = process.env.AIzaSyDQJ0GbiNE8LamwrjM1ZJ0OEGdQ_HNY9V8;
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY; // FIXED LINE
 
 // DEBUG: Check if API key is working
 router.get("/debug", (req, res) => {
