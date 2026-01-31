@@ -67,8 +67,8 @@ app.use('/api/reports', require('./routes/reportRoutes'));
 // Serve static assets
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Gaming Hub - More explicit path resolution
-const gamingHubPath = path.resolve(__dirname, '..', 'GamingHub');
+// Gaming Hub - Pointing to internal folder for deployment
+const gamingHubPath = path.resolve(__dirname, 'GamingHub');
 app.use('/gaming-hub', express.static(gamingHubPath));
 
 // Explicit route for the main index.html to avoid 404s in some browser/express versions
