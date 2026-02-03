@@ -12,9 +12,11 @@ const { initCronJobs } = require('./jobs/reelSync');
 dotenv.config();
 
 console.log("GEMINI_API_KEY loaded:", !!process.env.GEMINI_API_KEY);
+console.log("Initializing Express app...");
 
 
 const app = express();
+app.set('trust proxy', 1); // Trust Ngrok proxy
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
@@ -22,20 +24,43 @@ const io = new Server(server, {
         methods: ["GET", "POST", "PUT", "DELETE"]
     }
 });
+console.log("Socket.io initialized.");
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'bypass-tunnel-reminder', 'Bypass-Tunnel-Reminder']
+}));
 app.use(express.json());
 
+const { seedReels } = require('./controllers/reelController');
+console.log("ReelController required.");
+
 // Database Connection
+console.log('Connecting to MongoDB...');
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/social_media_platform', {
+    serverSelectionTimeoutMS: 5000,
+    family: 4 // Force IPv4 to avoid potential IPv6 resolution hangs
 })
     .then(() => {
-        console.log('MongoDB Connected');
+        console.log('✅ MongoDB Connected Successfully');
         // Initialize Cron Jobs
         initCronJobs();
+        // Run initial seed in background
+        seedReels().catch(err => console.error('❌ Background Seeding Error:', err));
     })
-    .catch(err => console.error('MongoDB Connection Error:', err));
+    .catch(err => {
+        console.error('❌ MongoDB Connection Error:', err.message);
+    });
+
+mongoose.connection.on('error', err => {
+    console.error('❌ Mongoose default connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.log('⚠️ Mongoose default connection disconnected');
+});
 
 // Global Rate Limiting
 const limiter = rateLimit({
@@ -62,14 +87,47 @@ app.use('/api/admin/owner', require('./routes/ownerRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
+console.log("All routes registered.");
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error('❌ Global Error:', err);
+    if (err.name === 'MulterError') {
+        return res.status(400).json({ message: 'File upload error', error: err.message });
+    }
+    res.status(500).json({ message: 'Internal Server Error', error: err.message });
+});
 
 
 // Serve static assets
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Gaming Hub - Pointing to internal folder for deployment
-const gamingHubPath = path.resolve(__dirname, 'GamingHub');
+// Gaming Hub - More robust path resolution for deployment
+let gamingHubPath;
+const possiblePaths = [
+    path.resolve(__dirname, 'GamingHub'),
+    path.resolve(__dirname, '..', 'GamingHub'),
+    path.resolve(process.cwd(), 'GamingHub')
+];
+
+for (const p of possiblePaths) {
+    if (require('fs').existsSync(path.join(p, 'index.html'))) {
+        gamingHubPath = p;
+        break;
+    }
+}
+
+if (!gamingHubPath) {
+    console.error("CRITICAL: Gaming Hub directory not found in known locations!");
+    // Default to a safe fallback to prevent crash, though gaming won't work
+    gamingHubPath = path.resolve(__dirname, 'GamingHub');
+}
+console.log("Serving Gaming Hub from:", gamingHubPath);
 app.use('/gaming-hub', express.static(gamingHubPath));
+
+// Serve Frontend static files
+const frontendPath = path.resolve(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendPath));
 
 // Explicit route for the main index.html to avoid 404s in some browser/express versions
 app.get('/gaming-hub', (req, res) => {
@@ -89,14 +147,21 @@ const matchQueue = {
     'carrom': []
 };
 
-// Basic Route
-app.get('/', (req, res) => {
-    res.send('Social Media Platform API is running');
-});
-
-// 404 Handler
-app.use((req, res, next) => {
-    res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
+// 404 Handler & SPA Catch-all
+console.log("Registering 404 handler...");
+app.get(/.*/, (req, res) => {
+    // If it's an API request that wasn't handled, return 404
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
+    }
+    // Otherwise, serve the frontend index.html
+    const indexPath = path.join(frontendPath, 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            console.error('Error sending index.html:', err);
+            res.status(500).send('Error loading the app UI. Please ensure the frontend is built.');
+        }
+    });
 });
 
 // Socket IO Connection logic

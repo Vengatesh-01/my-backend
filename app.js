@@ -12,6 +12,7 @@ const { initCronJobs } = require('./jobs/reelSync');
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1); // Trust Ngrok proxy for rate limiting
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -21,7 +22,11 @@ const io = new Server(server, {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'bypass-tunnel-reminder', 'Bypass-Tunnel-Reminder']
+}));
 app.use(express.json());
 
 // DEBUG ALL ROUTES

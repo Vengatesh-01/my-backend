@@ -39,24 +39,23 @@ const CURATED_TAMIL_REELS = [
 
 
 // @desc    Seed initial Tamil reels
-const seedReels = async () => {
+exports.seedReels = async () => {
     try {
         const count = await Reel.countDocuments();
 
-        // Flush all caches when seeding/checking to ensure fresh data (including products)
+        // Flush all caches when seeding/checking to ensure fresh data
         reelCache.flushAll();
 
         // Always try to sync with YouTube first if key exists
         if (process.env.YOUTUBE_API_KEY) {
+            console.log('Background Sync: Checking for new content...');
             const youtubeReels = await fetchAndSyncYouTubeReels();
-            if (youtubeReels.length > 0) {
+            if (youtubeReels && youtubeReels.length > 0) {
                 console.log(`Synced ${youtubeReels.length} Reels from YouTube`);
-                reelCache.flushAll(); // Flush cache when new content arrives
-                return;
+                reelCache.flushAll();
             }
         }
 
-        // Ensure at least some data exists if empty
         if (count === 0) {
             console.log('Database empty. Seeding fallback curated reels.');
             await Reel.insertMany(CURATED_TAMIL_REELS);
@@ -66,7 +65,6 @@ const seedReels = async () => {
         console.error('Error seeding reels:', error);
     }
 };
-seedReels();
 
 // @desc    Create a new reel (user upload)
 // @route   POST /api/reels
@@ -245,15 +243,21 @@ exports.getReels = async (req, res) => {
         let productReels = [];
         if (productsNeeded > 0) {
             const productSkip = Math.floor(startIdx / 10);
-            const allProducts = await ProductReel.find().lean();
-            if (allProducts.length > 0) {
+
+            // Optimization: Cache the product list to avoid hitting DB on every scroll
+            let allProducts = reelCache.get('product_list');
+            if (!allProducts) {
+                allProducts = await ProductReel.find().lean();
+                reelCache.set('product_list', allProducts, 600); // Cache for 10 mins
+            }
+
+            if (allProducts && allProducts.length > 0) {
                 for (let j = 0; j < productsNeeded; j++) {
                     const adGlobalIndex = productSkip + j;
-                    // Use modulo to rotate through all available ads
                     const pIdx = adGlobalIndex % allProducts.length;
                     productReels.push({
                         ...allProducts[pIdx],
-                        _id: `${allProducts[pIdx]._id}_ad_${adGlobalIndex}`, // Unique ID for duplicate avoidance
+                        _id: `${allProducts[pIdx]._id}_ad_${adGlobalIndex}`,
                         type: 'product'
                     });
                 }

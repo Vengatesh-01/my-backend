@@ -5,6 +5,12 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // Configure Cloudinary
+console.log('Cloudinary Config Check:', {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY ? 'Present' : 'Missing',
+    api_secret: process.env.CLOUDINARY_API_SECRET ? 'Present' : 'Missing'
+});
+
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -14,11 +20,12 @@ cloudinary.config({
 // Configure Cloudinary Storage
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    params: {
-        folder: 'reelio_uploads',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi', 'webm', 'webp'],
-        resource_type: 'auto', // Automatically detect if it's image or video
-    }
+    params: async (req, file) => {
+        return {
+            folder: 'reelio_uploads',
+            resource_type: 'auto',
+        };
+    },
 });
 
 const upload = multer({
@@ -31,9 +38,13 @@ const upload = multer({
 // @access  Public
 router.post('/', upload.single('file'), (req, res) => {
     try {
+        console.log('File upload request received.');
         if (!req.file) {
+            console.error('No file in req.file');
             return res.status(400).json({ message: 'No file uploaded.' });
         }
+
+        console.log('File uploaded successfully to Cloudinary:', req.file);
 
         // Cloudinary URL is already available through req.file.path
         res.json({

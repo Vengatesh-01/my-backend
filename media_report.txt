@@ -1,0 +1,21 @@
+﻿[dotenv@17.2.3] injecting env (8) from .env -- tip: ΓÜÖ∩╕Å  override existing env vars with { override: true }
+Connecting to MongoDB...
+Connected.
+
+--- RECENT POSTS ---
+ID: 697e53b5741ca9266443e707 | Image: /uploads/file-1769886642759.jpg | Video:  | Text: 
+
+--- RECENT REELS ---
+ID: 698072ff85be3125c7de54d6 | Video: https://www.youtube.com/watch?v=uIP7CM9C_KM | Thumb: undefined | Title: undefined
+ID: 698072ff85be3125c7de54d3 | Video: https://www.youtube.com/watch?v=4aU5nSgKgzQ | Thumb: undefined | Title: undefined
+ID: 698072ff85be3125c7de54d0 | Video: https://www.youtube.com/watch?v=jZ9d5RzU69I | Thumb: undefined | Title: undefined
+ID: 698072ff85be3125c7de54cd | Video: https://www.youtube.com/watch?v=LoXgHhpTBYc | Thumb: undefined | Title: undefined
+ID: 698072fd85be3125c7de54c6 | Video: https://www.youtube.com/watch?v=u9NtpYOZQH8 | Thumb: undefined | Title: undefined
+ID: 698072fd85be3125c7de54c3 | Video: https://www.youtube.com/watch?v=ZW1q8NGxAkc | Thumb: undefined | Title: undefined
+ID: 698072fc85be3125c7de54c0 | Video: https://www.youtube.com/watch?v=4gjLWUWR3To | Thumb: undefined | Title: undefined
+ID: 698072fc85be3125c7de54bd | Video: https://www.youtube.com/watch?v=C2VUQPjWVuQ | Thumb: undefined | Title: undefined
+ID: 698072fc85be3125c7de54ba | Video: https://www.youtube.com/watch?v=w2vB3oj9WuM | Thumb: undefined | Title: undefined
+ID: 698072fc85be3125c7de54b7 | Video: https://www.youtube.com/watch?v=0jvmO_oocUY | Thumb: undefined | Title: undefined
+
+--- RECENT USERS ---
+User: Vengatesh__25 | Pic: /uploads/file-1769886789703.jpg
