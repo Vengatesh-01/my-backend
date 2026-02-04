@@ -84,17 +84,31 @@ const getAllUsers = async (req, res) => {
 const searchUsers = async (req, res) => {
     try {
         const { q } = req.query;
-        if (!q) return res.status(400).json({ message: 'Query required' });
+        if (!q || q.trim() === '') {
+            return res.json([]);
+        }
+
+        const query = q.trim();
+        // Create a fuzzy regex: "Selva Rani" -> /Selva.*Rani/i
+        const fuzzyQuery = query.split(/\s+/).join('.*');
+        const regex = new RegExp(fuzzyQuery, 'i');
+
+        console.log(`[SEARCH] Query: "${query}" | Regex: ${regex} | User: ${req.user?.username}`);
 
         const users = await User.find({
+            _id: { $ne: req.user._id }, // Don't show yourself in search
             $or: [
-                { username: { $regex: q, $options: 'i' } },
-                { fullname: { $regex: q, $options: 'i' } }
+                { username: { $regex: regex } },
+                { fullname: { $regex: regex } }
             ]
-        }).select('username fullname profilePic').limit(10);
+        })
+            .select('username fullname profilePic')
+            .limit(10);
 
+        console.log(`[SEARCH] Found ${users.length} users`);
         res.json(users);
     } catch (error) {
+        console.error('[SEARCH] Error:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -137,6 +151,7 @@ const updateProfile = async (req, res) => {
             }
 
             user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
+            user.fullname = req.body.fullname !== undefined ? req.body.fullname : user.fullname;
             user.profilePic = req.body.profilePic !== undefined ? req.body.profilePic : user.profilePic;
 
             const updatedUser = await user.save();

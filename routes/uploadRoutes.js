@@ -3,18 +3,27 @@ const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const { protect } = require('../middleware/authMiddleware');
 
 // Configure Cloudinary
+const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
+const api_key = process.env.CLOUDINARY_API_KEY;
+const api_secret = process.env.CLOUDINARY_API_SECRET;
+
 console.log('Cloudinary Config Check:', {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY ? 'Present' : 'Missing',
-    api_secret: process.env.CLOUDINARY_API_SECRET ? 'Present' : 'Missing'
+    cloud_name: cloud_name || 'MISSING',
+    api_key: api_key ? 'Present' : 'Missing',
+    api_secret: api_secret ? 'Present' : 'Missing'
 });
 
+if (!cloud_name || !api_key || !api_secret) {
+    console.error('❌ Cloudinary configuration is incomplete. Uploads will fail.');
+}
+
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+    cloud_name,
+    api_key,
+    api_secret
 });
 
 // Configure Cloudinary Storage
@@ -53,8 +62,44 @@ router.post('/', upload.single('file'), (req, res) => {
             publicId: req.file.filename
         });
     } catch (error) {
-        console.error('Upload error:', error);
-        res.status(500).json({ message: 'Error uploading file', error: error.message });
+        console.error('Upload catch error:', error);
+        res.status(500).json({
+            message: 'Error uploading file',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+});
+
+// @route   GET /api/upload/signature
+// @desc    Get Cloudinary signature for direct upload
+// @access  Protected
+router.get('/signature', protect, (req, res) => {
+    try {
+        const timestamp = Math.round((new Date()).getTime() / 1000);
+        const signature = cloudinary.utils.api_sign_request({
+            timestamp: timestamp,
+            folder: 'reelio_uploads'
+        }, api_secret);
+
+        res.json({
+            signature,
+            timestamp,
+            cloudName: cloud_name,
+            apiKey: api_key,
+            folder: 'reelio_uploads'
+        });
+    } catch (error) {
+        console.error('Signature generation failed:', error);
+        res.status(500).json({
+            message: 'Error generating upload signature',
+            error: error.message,
+            config_status: {
+                cloud_name: !!cloud_name,
+                api_key: !!api_key,
+                api_secret: !!api_secret
+            }
+        });
     }
 });
 

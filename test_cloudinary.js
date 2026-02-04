@@ -1,6 +1,10 @@
+require('dotenv').config();
 const cloudinary = require('cloudinary').v2;
-const dotenv = require('dotenv');
-dotenv.config();
+
+console.log('Testing Cloudinary configuration...');
+console.log('Cloud Name:', process.env.CLOUDINARY_CLOUD_NAME);
+console.log('API Key:', process.env.CLOUDINARY_API_KEY ? 'Present' : 'Missing');
+console.log('API Secret:', process.env.CLOUDINARY_API_SECRET ? 'Present' : 'Missing');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -8,20 +12,18 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-async function test() {
-    console.log('Testing Cloudinary upload...');
+async function testUpload() {
     try {
-        const result = await cloudinary.uploader.upload('https://ui-avatars.com/api/?name=Test', {
-            folder: 'test_uploads'
+        console.log('Attempting to upload a test image to Cloudinary...');
+        const result = await cloudinary.uploader.upload('https://placehold.co/600x400.png', {
+            folder: 'reelio_test'
         });
-        console.log('SUCCESS!');
-        console.log('URL:', result.secure_url);
-        process.exit(0);
-    } catch (err) {
-        console.error('FAILED!');
-        console.error(err);
-        process.exit(1);
+        console.log('✅ Upload Success!');
+        console.log('Result URL:', result.secure_url);
+    } catch (error) {
+        console.error('❌ Upload Failed!');
+        console.error('Error Details:', error);
     }
 }
 
-test();
+testUpload();

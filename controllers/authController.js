@@ -93,7 +93,7 @@ exports.resetPassword = async (req, res) => {
 // @access  Public
 exports.registerUser = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, fullname, email, password } = req.body;
 
         // Check if user exists
         const userExists = await User.findOne({ $or: [{ email }, { username }] });
@@ -104,6 +104,7 @@ exports.registerUser = async (req, res) => {
         // Create user
         const user = await User.create({
             username,
+            fullname: fullname || '',
             email,
             password,
         });
@@ -112,6 +113,7 @@ exports.registerUser = async (req, res) => {
             res.status(201).json({
                 _id: user.id,
                 username: user.username,
+                fullname: user.fullname,
                 email: user.email,
                 savedPosts: [],
                 blockedUsers: [],
@@ -150,6 +152,7 @@ exports.loginUser = async (req, res) => {
             res.json({
                 _id: user.id,
                 username: user.username,
+                fullname: user.fullname,
                 email: user.email,
                 savedPosts: user.savedPosts || [],
                 blockedUsers: user.blockedUsers || [],
@@ -175,6 +178,7 @@ exports.getMe = async (req, res) => {
             res.status(200).json({
                 _id: user.id,
                 username: user.username,
+                fullname: user.fullname,
                 email: user.email,
                 profilePic: user.profilePic,
                 bio: user.bio,

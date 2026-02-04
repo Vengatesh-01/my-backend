@@ -38,11 +38,10 @@ const { seedReels } = require('./controllers/reelController');
 console.log("ReelController required.");
 
 // Database Connection
-console.log('Connecting to MongoDB...');
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/social_media_platform', {
-    serverSelectionTimeoutMS: 5000,
-    family: 4 // Force IPv4 to avoid potential IPv6 resolution hangs
-})
+const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/social_media_platform';
+console.log('Connecting to MongoDB:', mongoURI.split('@')[1] || mongoURI); // Log host only for safety
+
+mongoose.connect(mongoURI)
     .then(() => {
         console.log('✅ MongoDB Connected Successfully');
         // Initialize Cron Jobs
