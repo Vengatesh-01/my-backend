@@ -26,13 +26,20 @@ const io = new Server(server, {
 });
 console.log("Socket.io initialized.");
 
-// Middleware
+// CORS configuration - Move to top and make more robust
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'bypass-tunnel-reminder', 'Bypass-Tunnel-Reminder']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'ngrok-skip-browser-warning', 'bypass-tunnel-reminder'],
+    credentials: false
 }));
+
 app.use(express.json());
+
+// Public health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), environment: process.env.NODE_ENV || 'development' });
+});
 
 const { seedReels } = require('./controllers/reelController');
 console.log("ReelController required.");
@@ -61,11 +68,11 @@ mongoose.connection.on('disconnected', () => {
     console.log('⚠️ Mongoose default connection disconnected');
 });
 
-// Global Rate Limiting
+// Global Rate Limiting - MOVED BELOW CORS and Health Check
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // Increased limit for development
-    message: 'Too many requests from this IP, please try again after 15 minutes'
+    max: 1000,
+    message: 'Too many requests'
 });
 app.use(limiter);
 
