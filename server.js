@@ -26,27 +26,27 @@ const io = new Server(server, {
 });
 console.log("Socket.io initialized.");
 
-// Global Request Logger
+// 1. Public health check (No CORS needed, but we'll allow it)
+app.get('/api/health', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), message: 'Server is healthy' });
+});
+
+// 2. Global Request Logger
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
     next();
 });
 
-// Robust CORS configuration
+// 3. Simple, permissive CORS for all other routes
 app.use(cors({
-    origin: true, // Reflects the request origin
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'ngrok-skip-browser-warning', 'bypass-tunnel-reminder'],
-    credentials: true,
-    maxAge: 86400 // Cache preflight for 24 hours
+    credentials: false
 }));
 
 app.use(express.json());
-
-// Public health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString(), message: 'Server is healthy' });
-});
 
 // Explicit handle for Preflight requests
 app.options('*', cors());
@@ -168,7 +168,12 @@ console.log("Registering 404 handler...");
 app.get(/.*/, (req, res) => {
     // If it's an API request that wasn't handled, return 404
     if (req.path.startsWith('/api')) {
-        return res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
+        res.set('Access-Control-Allow-Origin', '*');
+        return res.status(404).json({
+            message: `Route ${req.method} ${req.originalUrl} not found`,
+            path: req.path,
+            method: req.method
+        });
     }
     // Otherwise, serve the frontend index.html
     const indexPath = path.join(frontendPath, 'index.html');
