@@ -37,14 +37,13 @@ async function verifyProduction() {
     }
 
     // 3. Frontend - Check if deployed
-    console.log('\n🌐 Frontend Tests (Netlify)');
+    console.log('\n🌐 Frontend Tests (Vercel)');
     console.log('-'.repeat(50));
 
-    // Try to detect Netlify URL from common patterns
+    // Try to detect Vercel URL
     const possibleFrontendUrls = [
-        'https://reelio.netlify.app',
-        'https://app.reelio.com',
-        // Add more if known
+        'https://frontend-vercel-azure.vercel.app',
+        'https://reelio.netlify.app', // Keep as fallback for now
     ];
 
     let frontendUrl = null;
@@ -91,8 +90,8 @@ async function verifyProduction() {
         console.log('   - Verify environment variables are set');
     }
     if (unknown > 0) {
-        console.log('   - Verify frontend is deployed to Netlify');
-        console.log('   - Check Netlify deployment status');
+        console.log('   - Verify frontend is deployed to Vercel');
+        console.log('   - Check Vercel deployment status');
     }
     if (failed === 0 && unknown === 0) {
         console.log('   ✅ All systems operational!');

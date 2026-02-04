@@ -1,9 +1,9 @@
 const axios = require('axios');
 
-async function verifyNetlifyDeployment() {
-    console.log('🔍 Verifying Production Deployment');
+async function verifyVercelDeployment() {
+    console.log('🔍 Verifying Vercel Production Deployment');
     console.log('='.repeat(60));
-    console.log('Frontend: https://glowing-torrone-e2bac4.netlify.app');
+    console.log('Frontend: https://frontend-vercel-azure.vercel.app');
     console.log('Backend: https://reelio.onrender.com');
     console.log('='.repeat(60));
     console.log('');
@@ -14,7 +14,7 @@ async function verifyNetlifyDeployment() {
     console.log('📱 Frontend Tests');
     console.log('-'.repeat(60));
     try {
-        const response = await axios.get('https://glowing-torrone-e2bac4.netlify.app', {
+        const response = await axios.get('https://frontend-vercel-azure.vercel.app', {
             timeout: 10000,
             validateStatus: () => true
         });
@@ -67,16 +67,15 @@ async function verifyNetlifyDeployment() {
     console.log(`\n✅ Passed: ${passed}/${total}`);
 
     if (passed === total) {
-        console.log('\n🎉 All systems operational!');
+        console.log('\n🎉 All systems operational on Vercel!');
         console.log('\n✅ Your production app should now have:');
         console.log('   - Cloudinary images displaying correctly');
-        console.log('   - Upload functionality working (no 500 errors)');
+        console.log('   - Upload functionality working');
         console.log('   - Gaming Hub accessible');
-        console.log('   - Profile pictures properly sized');
-        console.log('\n📝 Next: Test these features on your site!');
+        console.log('\n📝 Next: Test these features on your Vercel site!');
     } else {
         console.log('\n⚠️  Some tests failed. Please check the errors above.');
     }
 }
 
-verifyNetlifyDeployment().catch(console.error);
+verifyVercelDeployment().catch(console.error);

@@ -36,7 +36,7 @@ async function checkProduction() {
     }
 
     console.log('\n⏳ Note: Render deployments can take 2-5 minutes to complete.');
-    console.log('📌 Frontend (Netlify) still needs manual deployment for urlUtils.js and HomePage.jsx fixes.');
+    console.log('📌 Frontend (Vercel) at: https://frontend-vercel-azure.vercel.app');
 }
 
 checkProduction();
