@@ -26,20 +26,30 @@ const io = new Server(server, {
 });
 console.log("Socket.io initialized.");
 
-// CORS configuration - Move to top and make more robust
+// Global Request Logger
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    next();
+});
+
+// Robust CORS configuration
 app.use(cors({
-    origin: '*',
+    origin: true, // Reflects the request origin
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'ngrok-skip-browser-warning', 'bypass-tunnel-reminder'],
-    credentials: false
+    credentials: true,
+    maxAge: 86400 // Cache preflight for 24 hours
 }));
 
 app.use(express.json());
 
 // Public health check endpoint
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString(), environment: process.env.NODE_ENV || 'development' });
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), message: 'Server is healthy' });
 });
+
+// Explicit handle for Preflight requests
+app.options('*', cors());
 
 const { seedReels } = require('./controllers/reelController');
 console.log("ReelController required.");
