@@ -35,6 +35,13 @@ const healthHandler = (req, res) => {
 
 app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
+app.get('/api/debug-version', (req, res) => {
+    res.json({
+        version: '1.0.1-auth-fix-v2',
+        hasSecret: !!process.env.JWT_SECRET,
+        nodeEnv: process.env.NODE_ENV
+    });
+});
 app.get('/', (req, res) => res.send('Reelio API is Running'));
 
 /* ================= LOGGER ================= */
