@@ -40,8 +40,23 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const { seedReels } = require('./controllers/reelController');
-console.log("ReelController required.");
+/* ================= HEALTH ================= */
+
+const healthHandler = (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), message: 'Server is healthy' });
+};
+
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
+app.get('/api/debug-version', (req, res) => {
+  res.json({
+    version: '1.0.1-auth-fix-v3',
+    hasSecret: !!process.env.JWT_SECRET,
+    hasCloudinary: !!process.env.CLOUDINARY_CLOUD_NAME
+  });
+});
+app.get('/', (req, res) => res.send('Reelio API is Running'));
 
 // Database Connection
 const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/social_media_platform';
@@ -157,16 +172,14 @@ console.log("Registering 404 handler...");
 app.get(/.*/, (req, res) => {
   // If it's an API request that wasn't handled, return 404
   if (req.path.startsWith('/api')) {
-    return res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
+    return res.status(404).json({
+      message: `Route ${req.method} ${req.originalUrl} not found`,
+      path: req.path,
+      method: req.method
+    });
   }
-  // Otherwise, serve the frontend index.html
-  const indexPath = path.join(frontendPath, 'index.html');
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      console.error('Error sending index.html:', err);
-      res.status(500).send('Error loading the app UI. Please ensure the frontend is built.');
-    }
-  });
+  res.set('Access-Control-Allow-Origin', '*');
+  res.status(200).send('Reelio API is Running');
 });
 
 // Socket IO Connection logic
