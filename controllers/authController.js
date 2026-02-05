@@ -119,6 +119,7 @@ exports.registerUser = async (req, res) => {
                 savedPosts: [],
                 blockedUsers: [],
                 token: generateToken(user.id),
+                version: 'v1.0.5-profile-fix'
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
@@ -159,6 +160,7 @@ exports.loginUser = async (req, res) => {
                 savedPosts: user.savedPosts || [],
                 blockedUsers: user.blockedUsers || [],
                 token: generateToken(user.id),
+                version: 'v1.0.5-profile-fix'
             });
         } else {
             console.log(`Login failed for identifier: ${identifier}`);
