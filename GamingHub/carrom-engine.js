@@ -125,8 +125,11 @@ class CarromEngine {
         if (this.overlay) {
             this.overlay.innerHTML = '';
             this.overlay.style.pointerEvents = "none";
-            // Do NOT remove overlay here, parent handles it
         }
+
+        // Clean up Scoreboard HUD
+        const hub = document.getElementById('carrom-score-hud-root');
+        if (hub) hub.remove();
 
         if (this.audioCtx) {
             // Suspended/Close context if needed
