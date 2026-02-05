@@ -55,7 +55,11 @@ app.get('/api/debug-version', (req, res) => {
   res.json({
     version: '1.0.1-auth-fix-v4',
     hasSecret: !!process.env.JWT_SECRET,
-    hasCloudinary: !!process.env.CLOUDINARY_CLOUD_NAME
+    cloudinary: {
+      cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: !!process.env.CLOUDINARY_API_KEY,
+      api_secret: !!process.env.CLOUDINARY_API_SECRET
+    }
   });
 });
 app.get('/', (req, res) => res.send('Reelio API is Running'));
