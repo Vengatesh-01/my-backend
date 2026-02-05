@@ -288,17 +288,19 @@
 
         /* --- Pro Chess UI --- */
         .chess-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: grid;
+            place-items: center;
+            /* Use grid for more robust centering */
             gap: 12px;
             padding: 10px;
             height: 100vh;
             width: 100vw;
-            justify-content: center;
             background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
             overflow: hidden;
-            position: relative;
+            position: fixed;
+            /* Fixed to avoid page scroll interference */
+            top: 0;
+            left: 0;
         }
 
         #myBoard {
@@ -483,29 +485,6 @@
             font-size: 0.95rem;
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Mobile Responsive Chess Adjustments */
-        @media (max-width: 1024px) {
-            .chess-container {
-                flex-direction: column !important;
-                gap: 10px !important;
-                padding: 5px !important;
-            }
-
-            .move-history-panel {
-                display: none !important;
-                /* Hide movement list on mobile to save space */
-            }
-
-            .side-controls {
-                left: 10px !important;
-                transform: translateY(-50%) scale(0.8);
-            }
-
-            .chess-main-view {
-                transform: scale(0.95);
-            }
         }
 
         /* --- Chess Settings Modal --- */
@@ -982,10 +961,54 @@
             border-radius: 50%;
         }
 
-        /* Restoration: Enable the carrom premium UI to show scores */
+        /* Force hide carrom premium UI */
         #carrom-ui-layer {
-            display: flex !important;
-            visibility: visible !important;
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        /* --- Mobile Responsive Fixes --- */
+        @media (max-width: 768px) {
+            .chess-wood-theme {
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                padding-top: 20px !important;
+                gap: 10px !important;
+            }
+
+            /* Move controls to bottom row */
+            .side-controls {
+                position: fixed !important;
+                bottom: 20px !important;
+                left: 50% !important;
+                top: auto !important;
+                transform: translateX(-50%) !important;
+                flex-direction: row !important;
+                width: max-content !important;
+                background: rgba(62, 39, 35, 0.9);
+                padding: 10px 20px;
+                border-radius: 30px;
+                border: 2px solid #facc15;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+                gap: 20px !important;
+            }
+
+            .round-btn {
+                width: 45px !important;
+                height: 45px !important;
+                font-size: 1.2rem !important;
+            }
+
+            /* Hide history panel on mobile */
+            .move-history-panel {
+                display: none !important;
+            }
+
+            /* Adjust board container */
+            .chess-main-view {
+                transform: scale(0.95);
+                margin-top: 10px;
+            }
         }
     </style>
 
@@ -998,8 +1021,10 @@
             <div class="gaming-header">
                 <span class="hub-badge">REELIO GAMING</span>
                 <h1
-                    style="font-size: clamp(2rem, 8vw, 3.5rem); margin: 20px 0 10px; background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
-                    GamerHub Pro</h1>
+                    style="margin: 0; font-size: 2.8rem; background: linear-gradient(to right, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; letter-spacing: -1px;">
+                    GAMING HUB <span
+                        style="font-size: 0.8rem; vertical-align: middle; -webkit-text-fill-color: #facc15; opacity: 0.6;">v1.0.6</span>
+                </h1>
                 <p
                     style="color: #94a3b8; font-size: clamp(0.9rem, 4vw, 1.1rem); max-width: 600px; margin: 0 auto 30px;">
                     Five Premium Games. Seamless Multiplayer. Built for Reelio.</p>
@@ -1238,6 +1263,82 @@
                     // Ensure Racing UI container fits screen
                     const gameContainer = document.getElementById('game-container');
                     gameContainer.style.overflow = 'hidden';
+
+                    // Wire up mobile controls for touch steering and pedals
+                    setTimeout(() => {
+                        const btnLeft = document.getElementById('btn-left');
+                        const btnRight = document.getElementById('btn-right');
+                        const pedalGas = document.getElementById('pedal-gas');
+                        const pedalBrake = document.getElementById('pedal-brake');
+
+                        if (window.RacingGame.instance) {
+                            const input = window.RacingGame.instance.input;
+
+                            // Steering - Left
+                            if (btnLeft) {
+                                ['touchstart', 'mousedown'].forEach(evt => {
+                                    btnLeft.addEventListener(evt, (e) => {
+                                        e.preventDefault();
+                                        input.setTouchControl('left', true);
+                                    });
+                                });
+                                ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+                                    btnLeft.addEventListener(evt, (e) => {
+                                        e.preventDefault();
+                                        input.setTouchControl('left', false);
+                                    });
+                                });
+                            }
+
+                            // Steering - Right
+                            if (btnRight) {
+                                ['touchstart', 'mousedown'].forEach(evt => {
+                                    btnRight.addEventListener(evt, (e) => {
+                                        e.preventDefault();
+                                        input.setTouchControl('right', true);
+                                    });
+                                });
+                                ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+                                    btnRight.addEventListener(evt, (e) => {
+                                        e.preventDefault();
+                                        input.setTouchControl('right', false);
+                                    });
+                                });
+                            }
+
+                            // Gas Pedal
+                            if (pedalGas) {
+                                ['touchstart', 'mousedown'].forEach(evt => {
+                                    pedalGas.addEventListener(evt, (e) => {
+                                        e.preventDefault();
+                                        input.setTouchControl('throttle', true);
+                                    });
+                                });
+                                ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+                                    pedalGas.addEventListener(evt, (e) => {
+                                        e.preventDefault();
+                                        input.setTouchControl('throttle', false);
+                                    });
+                                });
+                            }
+
+                            // Brake Pedal
+                            if (pedalBrake) {
+                                ['touchstart', 'mousedown'].forEach(evt => {
+                                    pedalBrake.addEventListener(evt, (e) => {
+                                        e.preventDefault();
+                                        input.setTouchControl('brake', true);
+                                    });
+                                });
+                                ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+                                    pedalBrake.addEventListener(evt, (e) => {
+                                        e.preventDefault();
+                                        input.setTouchControl('brake', false);
+                                    });
+                                });
+                            }
+                        }
+                    }, 500);
                 }
 
                 // Join Multiplayer Room if active
@@ -1335,7 +1436,7 @@
             document.querySelector('.back-btn').style.display = 'none';
 
             overlay.innerHTML = ` 
-                <div class="chess-container chess-wood-theme" style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 40px; position: relative; width: 100vw; height: 100vh; padding: 20px;" > 
+                <div class="chess-container chess-wood-theme"> 
                     
                     <!-- Side Controls (As per image) -->
                     <div class="side-controls">
@@ -1955,27 +2056,48 @@
         function startCarrom() {
             carromEngine.stop(); // Stop potential previous instance
 
-            // Create a dedicated UI layer for Carrom (Do NOT reuse game-status-msg)
-            let uiLayer = document.getElementById('carrom-ui-layer');
-            if (uiLayer) {
-                uiLayer.remove(); // Remove old one to perform a clean reset
-            }
+            // Create a dedicated UI layer for Carrom
+            let oldUi = document.getElementById('carrom-ui-layer');
+            if (oldUi) oldUi.remove();
 
-            uiLayer = document.createElement('div');
+            const uiLayer = document.createElement('div');
             uiLayer.id = 'carrom-ui-layer';
-            uiLayer.style.position = 'fixed';
-            uiLayer.style.top = '0';
-            uiLayer.style.left = '0';
-            uiLayer.style.width = '100vw';
-            uiLayer.style.height = '100vh';
-            uiLayer.style.margin = '0';
-            uiLayer.style.padding = '0';
-            uiLayer.style.backgroundColor = 'transparent';
-            uiLayer.style.pointerEvents = 'none';
-            uiLayer.style.zIndex = '9999';
-            document.body.appendChild(uiLayer);
-            uiLayer.style.display = 'block'; // Ensure visibility
+            uiLayer.style.cssText = `
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                pointer-events: none;
+                z-index: 9999;
+            `;
 
+            // Add Exit Button for Carrom
+            const exitBtn = document.createElement('button');
+            exitBtn.innerText = 'Exit Match';
+            exitBtn.style.cssText = `
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: rgba(239, 68, 68, 0.9);
+                border: 2px solid #ef4444;
+                color: white;
+                padding: 10px 24px;
+                border-radius: 12px;
+                font-weight: 800;
+                cursor: pointer;
+                pointer-events: auto;
+                z-index: 10000;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+                transition: transform 0.1s active;
+            `;
+            exitBtn.onclick = () => {
+                backToHub();
+                stopCarrom();
+            };
+            uiLayer.appendChild(exitBtn);
+
+            document.body.appendChild(uiLayer);
             carromEngine.start(canvas, uiLayer, ctx);
         }
 

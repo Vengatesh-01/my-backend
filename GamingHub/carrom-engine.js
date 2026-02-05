@@ -74,40 +74,62 @@ class CarromEngine {
         window.addEventListener('mouseup', this.handleMouseUp);
         window.addEventListener('keydown', this.handleKeyDown);
 
+        // Touch Support (Map to Mouse Events)
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            this.handleMouseDown(mouseEvent);
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            this.handleMouseMove(mouseEvent);
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            const mouseEvent = new MouseEvent('mouseup', {});
+            this.handleMouseUp(mouseEvent);
+        }, { passive: false });
+
         // Start Loop
         this.gameLoop();
     }
 
     stop() {
         this.active = false;
-        if (this.animationId) cancelAnimationFrame(this.animationId);
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
 
+        // Clean up listeners
         if (this.canvas) {
             this.canvas.removeEventListener('mousedown', this.handleMouseDown);
+            this.canvas.removeEventListener('touchstart', this.handleMouseDown);
         }
         window.removeEventListener('mousemove', this.handleMouseMove);
         window.removeEventListener('mouseup', this.handleMouseUp);
         window.removeEventListener('keydown', this.handleKeyDown);
-
-        // Clear UI
-        const hudRoot = document.getElementById('carrom-score-hud-root');
-        if (hudRoot) hudRoot.remove();
-
-        // Restore Exit Button
-        const backBtns = document.querySelectorAll('.back-btn');
-        backBtns.forEach(btn => {
-            if (btn.dataset.originalTop) btn.style.top = btn.dataset.originalTop;
-            if (btn.dataset.originalTransform !== undefined) btn.style.transform = btn.dataset.originalTransform;
-            if (btn.dataset.originalPadding !== undefined) btn.style.padding = btn.dataset.originalPadding;
-            if (btn.dataset.originalBackground !== undefined) btn.style.background = btn.dataset.originalBackground;
-            if (btn.dataset.originalBorder !== undefined) btn.style.border = btn.dataset.originalBorder;
-            btn.style.borderRadius = ''; // Reset to CSS default
-            btn.style.boxShadow = '';
-        });
+        window.removeEventListener('touchmove', this.handleMouseMove);
+        window.removeEventListener('touchend', this.handleMouseUp);
 
         if (this.overlay) {
             this.overlay.innerHTML = '';
             this.overlay.style.pointerEvents = "none";
+            // Do NOT remove overlay here, parent handles it
+        }
+
+        if (this.audioCtx) {
+            // Suspended/Close context if needed
         }
     }
 
@@ -179,13 +201,13 @@ class CarromEngine {
 
         hudRoot.innerHTML = `
             <!-- Top Scoreboard (Floating Corners Theme) -->
-            <div id="carrom-score-hud" style="position: fixed; top: 0; left: 0; width: 100%; height: 0; display: flex !important; justify-content: space-between; align-items: flex-start; padding: 20px; z-index: 2147483647; pointer-events: none;">
+            <div id="carrom-score-hud" style="position: fixed; top: 0; left: 0; width: 100%; height: 0; display: flex !important; justify-content: space-between; align-items: flex-start; padding: 50px 20px 20px; z-index: 2147483647; pointer-events: none;">
                 
                 <!-- Player 1 (Left: Alex) -->
-                <div style="display: flex; align-items: center; gap: 12px; background: linear-gradient(to bottom, #451a03, #2a0a00); padding: 10px 20px; border-radius: 16px; border: 2px solid #78350f; box-shadow: 0 6px 12px rgba(0,0,0,0.6); pointer-events: auto;">
+                <div style="display: flex; align-items: center; gap: 12px; background: linear-gradient(to bottom, #451a03, #2a0a00); padding: 10px 20px; border-radius: 16px; border: 2px solid #facc15; box-shadow: 0 6px 12px rgba(0,0,0,0.6); pointer-events: auto;">
                     <!-- Avatar Block -->
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                        <div style="width: 50px; height: 50px; border: 2px solid #ef4444; border-radius: 10px; overflow: hidden; box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); background: #1f2937;">
+                        <div style="width: 50px; height: 50px; border: 2px solid #facc15; border-radius: 10px; overflow: hidden; box-shadow: 0 0 8px rgba(250, 204, 21, 0.8); background: #1f2937;">
                             <img src="${p1Avatar}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                     </div>
@@ -196,13 +218,13 @@ class CarromEngine {
                     </div>
 
                     <!-- Score -->
-                    <div id="s1" style="color: #fff; font-weight: 900; font-size: 1.8rem; font-family: sans-serif;">0</div>
+                    <div id="s1" style="color: #fff; font-weight: 900; font-size: 2.2rem; font-family: sans-serif; text-shadow: 0 0 10px #facc15;">0</div>
                 </div>
 
                 <!-- Player 2 (Right: Carry) -->
-                <div style="display: flex; align-items: center; gap: 12px; background: linear-gradient(to bottom, #451a03, #2a0a00); padding: 10px 20px; border-radius: 16px; border: 2px solid #78350f; box-shadow: 0 6px 12px rgba(0,0,0,0.6); pointer-events: auto;">
+                <div style="display: flex; align-items: center; gap: 12px; background: linear-gradient(to bottom, #451a03, #2a0a00); padding: 10px 20px; border-radius: 16px; border: 2px solid #facc15; box-shadow: 0 6px 12px rgba(0,0,0,0.6); pointer-events: auto;">
                     <!-- Score -->
-                    <div id="s2" style="color: #fff; font-weight: 900; font-size: 1.8rem; font-family: sans-serif;">0</div>
+                    <div id="s2" style="color: #fff; font-weight: 900; font-size: 2.2rem; font-family: sans-serif; text-shadow: 0 0 10px #facc15;">0</div>
 
                     <!-- Black Coin Icon -->
                     <div style="width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #404040, #171717); border: 1px solid #525252; box-shadow: 0 2px 4px rgba(0,0,0,0.4); position: relative;">
@@ -211,7 +233,7 @@ class CarromEngine {
 
                     <!-- Avatar Block -->
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                        <div style="width: 50px; height: 50px; border: 2px solid #ef4444; border-radius: 10px; overflow: hidden; box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); background: #1f2937;">
+                        <div style="width: 50px; height: 50px; border: 2px solid #facc15; border-radius: 10px; overflow: hidden; box-shadow: 0 0 8px rgba(250, 204, 21, 0.8); background: #1f2937;">
                             <img src="${p2Avatar}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                     </div>
@@ -607,8 +629,77 @@ class CarromEngine {
         // ... (Simple check, can remain same as in monolithic)
     }
 
-    playHitSound(type = 'hit') {
-        // ... (Same audio logic)
+    // --- Audio System (Web Audio API) ---
+    initAudio() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
+    }
+
+    createNoiseBuffer() {
+        const bufferSize = this.audioCtx.sampleRate * 0.1;
+        const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        return buffer;
+    }
+
+    playHitSound(type = 'hit', volume = 1) {
+        try {
+            this.initAudio();
+            const ctx = this.audioCtx;
+            if (!ctx) return;
+
+            const gain = ctx.createGain();
+            gain.connect(ctx.destination);
+
+            if (type === 'hit') {
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800 + Math.random() * 400, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(volume * 0.6, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+                osc.connect(gain);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.05);
+
+                const noise = ctx.createBufferSource();
+                noise.buffer = this.createNoiseBuffer();
+                const noiseGain = ctx.createGain();
+                noiseGain.gain.setValueAtTime(volume * 0.4, ctx.currentTime);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
+                noise.connect(noiseGain);
+                noiseGain.connect(ctx.destination);
+                noise.start();
+            } else if (type === 'pocket') {
+                const osc = ctx.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.8, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+                osc.connect(gain);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } else if (type === 'wall') {
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, ctx.currentTime);
+                gain.gain.setValueAtTime(volume * 0.5, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                osc.connect(gain);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            }
+        } catch (e) {
+            console.error("Audio error:", e);
+        }
     }
 
     draw() {
