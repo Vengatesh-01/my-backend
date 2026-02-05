@@ -321,6 +321,32 @@ class RacingGameEngine {
         this.hudElement = null;
     }
 
+    handleOpponentUpdate(data) {
+        if (!this.running) return;
+        let opp = this.cars.find(c => c.id === data.id);
+        if (!opp) {
+            opp = new Car(data.position.x, data.position.y, '#3b82f6', 'opponent');
+            opp.id = data.id;
+            this.cars.push(opp);
+        }
+        opp.x = data.position.x;
+        opp.y = data.position.y;
+        opp.angle = data.position.angle;
+        opp.speed = data.position.speed;
+        opp.lap = data.score.lap;
+        opp.waypointIndex = data.score.waypoint;
+    }
+
+    broadcastPos() {
+        if (window.parent && window.parent.socket && window.parent.isMultiplayer) {
+            window.parent.socket.emit('racing-update', {
+                roomId: window.parent.currentRoomId,
+                position: { x: this.player.x, y: this.player.y, angle: this.player.angle, speed: this.player.speed },
+                score: { lap: this.player.lap, waypoint: this.player.waypointIndex }
+            });
+        }
+    }
+
     update() {
         this.weather.update();
 
@@ -439,6 +465,9 @@ class RacingGameEngine {
         try {
             this.update();
             this.draw();
+            if (window.parent && window.parent.isMultiplayer) {
+                this.broadcastPos();
+            }
             requestAnimationFrame(() => this.loop());
         } catch (e) {
             console.error(e);

@@ -48,17 +48,17 @@ app.use((req, res, next) => {
 
 app.use(cors({
     origin: '*',
-    methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept','Origin'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'ngrok-skip-browser-warning', 'bypass-tunnel-reminder'],
     credentials: false
 }));
 
 app.use(express.json());
 
-app.options('*', (req, res) => {
+app.options(/(.*)/, (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods','GET, POST, PUT, DELETE, OPTIONS');
-    res.set('Access-Control-Allow-Headers','Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, ngrok-skip-browser-warning, bypass-tunnel-reminder');
     res.sendStatus(204);
 });
 
@@ -71,27 +71,27 @@ const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/social_medi
 console.log('Connecting to MongoDB:', mongoURI.split('@')[1] || mongoURI);
 
 mongoose.connect(mongoURI)
-.then(()=>{
-    console.log('✅ MongoDB Connected Successfully');
-    initCronJobs();
-    seedReels().catch(err => console.error('❌ Background Seeding Error:', err));
-})
-.catch(err=>{
-    console.error('❌ MongoDB Connection Error:', err.message);
-});
+    .then(() => {
+        console.log('✅ MongoDB Connected Successfully');
+        initCronJobs();
+        seedReels().catch(err => console.error('❌ Background Seeding Error:', err));
+    })
+    .catch(err => {
+        console.error('❌ MongoDB Connection Error:', err.message);
+    });
 
-mongoose.connection.on('error', err=>{
+mongoose.connection.on('error', err => {
     console.error('❌ Mongoose default connection error:', err);
 });
 
-mongoose.connection.on('disconnected', ()=>{
+mongoose.connection.on('disconnected', () => {
     console.log('⚠️ Mongoose default connection disconnected');
 });
 
 /* ================= RATE LIMIT ================= */
 
 const limiter = rateLimit({
-    windowMs: 15*60*1000,
+    windowMs: 15 * 60 * 1000,
     max: 1000,
     message: 'Too many requests'
 });
@@ -119,74 +119,74 @@ console.log("All routes registered.");
 
 /* ================= ERROR HANDLER ================= */
 
-app.use((err, req, res, next)=>{
+app.use((err, req, res, next) => {
     console.error('❌ Global Error:', err);
-    if(err.name === 'MulterError'){
-        return res.status(400).json({ message:'File upload error', error:err.message });
+    if (err.name === 'MulterError') {
+        return res.status(400).json({ message: 'File upload error', error: err.message });
     }
-    res.status(500).json({ message:'Internal Server Error', error:err.message });
+    res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
 
 /* ================= STATIC FILES ================= */
 
-app.use('/uploads', express.static(path.join(__dirname,'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 /* ================= GAMING HUB ================= */
 
 let gamingHubPath;
 const possiblePaths = [
-    path.resolve(__dirname,'GamingHub'),
-    path.resolve(__dirname,'..','GamingHub'),
-    path.resolve(process.cwd(),'GamingHub')
+    path.resolve(__dirname, 'GamingHub'),
+    path.resolve(__dirname, '..', 'GamingHub'),
+    path.resolve(process.cwd(), 'GamingHub')
 ];
 
-for(const p of possiblePaths){
-    if(require('fs').existsSync(path.join(p,'index.html'))){
+for (const p of possiblePaths) {
+    if (require('fs').existsSync(path.join(p, 'index.html'))) {
         gamingHubPath = p;
         break;
     }
 }
 
-if(!gamingHubPath){
+if (!gamingHubPath) {
     console.error("CRITICAL: Gaming Hub directory not found!");
-    gamingHubPath = path.resolve(__dirname,'GamingHub');
+    gamingHubPath = path.resolve(__dirname, 'GamingHub');
 }
 
 console.log("Serving Gaming Hub from:", gamingHubPath);
 app.use('/gaming-hub', express.static(gamingHubPath));
 
-app.get('/gaming-hub',(req,res)=>{
-    res.sendFile(path.join(gamingHubPath,'index.html'));
+app.get('/gaming-hub', (req, res) => {
+    res.sendFile(path.join(gamingHubPath, 'index.html'));
 });
-app.get('/gaming-hub/',(req,res)=>{
-    res.sendFile(path.join(gamingHubPath,'index.html'));
+app.get('/gaming-hub/', (req, res) => {
+    res.sendFile(path.join(gamingHubPath, 'index.html'));
 });
 
 /* ================= 404 API ONLY ================= */
 
 console.log("Registering 404 handler...");
-app.get(/.*/, (req,res)=>{
-    if(req.path.startsWith('/api')){
-        res.set('Access-Control-Allow-Origin','*');
+app.get(/.*/, (req, res) => {
+    if (req.path.startsWith('/api')) {
+        res.set('Access-Control-Allow-Origin', '*');
         return res.status(404).json({
-            message:`Route ${req.method} ${req.originalUrl} not found`,
-            path:req.path,
-            method:req.method
+            message: `Route ${req.method} ${req.originalUrl} not found`,
+            path: req.path,
+            method: req.method
         });
     }
-    res.set('Access-Control-Allow-Origin','*');
+    res.set('Access-Control-Allow-Origin', '*');
     res.status(200).send('Reelio API is Running');
 });
 
 /* ================= SOCKET.IO ================= */
 
-io.on('connection',(socket)=>{
+io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
-    socket.on('join',(userId)=>{
+    socket.on('join', (userId) => {
         socket.join(userId);
         socket.userId = userId;
-        socket.broadcast.emit('user-status',{ userId, status:'online' });
+        socket.broadcast.emit('user-status', { userId, status: 'online' });
     });
 
     // 🔥 All your existing socket logic remains SAME
@@ -195,7 +195,7 @@ io.on('connection',(socket)=>{
 /* ================= START SERVER ================= */
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, ()=>{
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
