@@ -289,13 +289,13 @@
         /* --- Pro Chess UI --- */
         .chess-container {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
+            gap: 12px;
+            padding: 10px;
             height: 100vh;
             width: 100vw;
+            justify-content: center;
             background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
             overflow: hidden;
             position: relative;
@@ -304,10 +304,11 @@
         #myBoard {
             width: var(--board-size);
             height: var(--board-size);
-            max-width: 90vw;
-            max-height: 90vw;
+            max-width: 95vw;
+            max-height: 95vw;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(0, 0, 0, 0.5);
             border: 8px solid #3d2b1f;
+            /* Thinner border for scaling */
             border-radius: 4px;
             background: #2D1B10;
             touch-action: none;
@@ -316,35 +317,165 @@
         .chess-info {
             display: flex;
             width: var(--board-size);
-            max-width: 90vw;
+            max-width: 95vw;
             justify-content: space-between;
             align-items: center;
             background: rgba(15, 23, 42, 0.6);
             padding: 8px 15px;
+            /* Compact padding */
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             font-weight: bold;
             color: #e2e8f0;
         }
 
+        .timer {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.25rem;
+            /* Smaller timer */
+            color: #fbbf24;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+        }
+
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 50px;
+            background: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        /* --- Chess Wood Theme & Side Controls --- */
+        .chess-wood-theme {
+            background-color: #3e2723;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+        }
+
         .side-controls {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
             z-index: 200;
         }
 
-        .move-history-panel {
+        .round-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #facc15;
+            color: #facc15;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            flex: 1;
-            max-width: 250px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            padding: 0;
+        }
+
+        .round-btn:hover {
+            background: #facc15;
+            color: #451a03;
+            transform: scale(1.1);
+        }
+
+        .round-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Override chessboard colors for wood look */
+        .chess-wood-theme #myBoard {
+            border: 12px solid #5d4037 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8) !important;
+        }
+
+        .chess-wood-theme .white-1e1d7 {
+            background-color: #dcb084 !important;
+            /* Light wood */
+        }
+
+        .chess-wood-theme .black-1e1d7 {
+            background-color: #5d4037 !important;
+            /* Dark wood */
+        }
+
+        /* --- High-Fidelity 3D Wooden Pieces --- */
+        .chess-wood-theme img[src*="chesspieces"] {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+        }
+
+        /* White Pieces: Yellowish Oak Wood */
+        .chess-wood-theme img[src*="/w"] {
+            filter: sepia(0.8) saturate(2.2) brightness(1.1) contrast(1.1) drop-shadow(1px 1px 0px rgba(255, 255, 255, 0.4)) drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.6));
+        }
+
+        /* Black Pieces: Dark Walnut Wood */
+        .chess-wood-theme img[src*="/b"] {
+            filter: sepia(0.5) saturate(1.2) brightness(0.5) contrast(1.4) drop-shadow(1px 1px 0px rgba(255, 255, 255, 0.1)) drop-shadow(2px 5px 8px rgba(0, 0, 0, 0.8));
+        }
+
+        /* Hover Effect (Slight lift) */
+        .chess-wood-theme img[src*="chesspieces"]:hover {
+            transform: translateY(-5px) scale(1.08);
+            filter: brightness(1.2) drop-shadow(5px 10px 15px rgba(0, 0, 0, 0.5));
+        }
+
+        /* Active/Press Effect */
+        .chess-wood-theme img[src*="chesspieces"]:active {
+            transform: translateY(2px) scale(0.95);
+            filter: brightness(0.9);
+        }
+
+        /* Adjust side controls for larger board */
+        .chess-wood-theme .side-controls {
+            left: 20px;
+            gap: 15px;
+        }
+
+        .chess-wood-theme .round-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
+        }
+
+        .game-status-overlay {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 40px;
+            border-radius: 24px;
+            z-index: 400;
+            text-align: center;
+            display: none;
+            box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .captured-pieces {
+            display: flex;
+            gap: 2px;
+            font-size: 1.1rem;
+            /* Smaller pieces */
+            min-height: 1.4rem;
+            color: #aaa;
+            margin-top: 2px;
         }
 
         .move-history {
-            width: 100%;
-            height: var(--board-size);
+            width: 220px;
+            height: calc(var(--board-size) + 100px);
             background: rgba(0, 0, 0, 0.4);
             border-radius: 12px;
             padding: 15px;
@@ -354,44 +485,26 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Responsive Mobile Layout */
-        @media (max-width: 850px) {
+        /* Mobile Responsive Chess Adjustments */
+        @media (max-width: 1024px) {
             .chess-container {
-                flex-direction: column;
-                gap: 10px;
-                padding: 10px;
-                justify-content: flex-start;
-                padding-top: 40px;
-                overflow-y: auto;
-            }
-
-            .side-controls {
-                flex-direction: row;
-                order: 3;
-                width: 100%;
-                justify-content: center;
-                position: static;
-                transform: none;
-                margin-top: 10px;
-            }
-
-            .round-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2rem;
-            }
-
-            .chess-main-view {
-                order: 1;
+                flex-direction: column !important;
+                gap: 10px !important;
+                padding: 5px !important;
             }
 
             .move-history-panel {
-                display: none;
-                /* Hide history on small mobile to save space */
+                display: none !important;
+                /* Hide movement list on mobile to save space */
             }
 
-            :root {
-                --board-size: 85vw;
+            .side-controls {
+                left: 10px !important;
+                transform: translateY(-50%) scale(0.8);
+            }
+
+            .chess-main-view {
+                transform: scale(0.95);
             }
         }
 
@@ -869,10 +982,10 @@
             border-radius: 50%;
         }
 
-        /* Force hide carrom premium UI */
+        /* Restoration: Enable the carrom premium UI to show scores */
         #carrom-ui-layer {
-            display: none !important;
-            visibility: hidden !important;
+            display: flex !important;
+            visibility: visible !important;
         }
     </style>
 
@@ -885,7 +998,7 @@
             <div class="gaming-header">
                 <span class="hub-badge">REELIO GAMING</span>
                 <h1
-                    style="font-size: clamp(2rem, 8vw, 3.5rem); margin: 20px 0 10px; background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    style="font-size: clamp(2rem, 8vw, 3.5rem); margin: 20px 0 10px; background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
                     GamerHub Pro</h1>
                 <p
                     style="color: #94a3b8; font-size: clamp(0.9rem, 4vw, 1.1rem); max-width: 600px; margin: 0 auto 30px;">
@@ -958,7 +1071,6 @@
     <script src="racing/effects.js"></script>
     <script src="racing/utils.js"></script>
     <script src="racing/constants.js"></script>
-    <script src="racing/ai.js"></script>
     <script src="racing/entities.js"></script>
     <script src="racing/game.js"></script>
 
@@ -1016,7 +1128,7 @@
                         socket.on('connect', () => {
                             status.innerText = "Connected to Server (Latency: Low)";
                             status.style.color = "#4ade80";
-                            setupChessSocket();
+                            setupMultiplayerSocket();
                         });
 
                         socket.on('connect_error', () => {
@@ -1075,37 +1187,65 @@
         function backToHub() {
             if (animationId) cancelAnimationFrame(animationId);
 
-            // Stop external modules with safety check
+            // Stop external modules
             if (typeof stopCarrom === 'function') stopCarrom();
             if (typeof carromEngine !== 'undefined') carromEngine.stop();
-
-            if (typeof CarromGame !== 'undefined' && typeof CarromGame.stop === 'function') {
-                try { CarromGame.stop(); } catch (e) { }
-            }
             if (typeof RacingGame !== 'undefined' && RacingGame.instance) RacingGame.instance.stop();
 
+            // UI Switching
             document.getElementById('game-container').style.display = "none";
             document.getElementById('hub').style.display = "flex";
             document.getElementById('mobile-controls').style.display = 'none';
-            document.querySelector('.back-btn').style.display = 'block';
 
-            window.onkeydown = null;
-            window.onmouseup = null;
-            canvas.onmousedown = null;
-            canvas.onmousemove = null;
+            // Fix: Ensure hub is visible immediately
+            const hub = document.getElementById('hub');
+            hub.style.transform = "scale(1)";
+            hub.style.opacity = "1";
 
-            setTimeout(() => {
-                document.getElementById('hub').style.transform = "scale(1)";
-                document.getElementById('hub').style.opacity = "1";
-            }
-
-                , 10);
-            overlay.innerHTML = "";
-
-            // Clear any error banners
+            // Clean up overlays
+            const overlay = document.getElementById('html-overlay');
+            if (overlay) overlay.innerHTML = "";
             document.querySelectorAll('.error-banner').forEach(el => el.remove());
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Reset window events
+            window.onkeydown = null;
+            window.onkeyup = null;
+        }
+
+        // Improved Start Game Function
+        function startGame(type) {
+            currentGame = type;
+            document.getElementById('hub').style.opacity = "0";
+            document.getElementById('hub').style.transform = "scale(0.9)";
+
+            setTimeout(() => {
+                document.getElementById('hub').style.display = "none";
+                document.getElementById('game-container').style.display = "block";
+
+                // Reset Canvas
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (type === 'chess') {
+                    startChess();
+                } else if (type === 'carrom') {
+                    startCarrom();
+                } else if (type === 'car-racing' || type === 'police-chase') {
+                    startRacing(type);
+                    // Ensure Racing UI container fits screen
+                    const gameContainer = document.getElementById('game-container');
+                    gameContainer.style.overflow = 'hidden';
+                }
+
+                // Join Multiplayer Room if active
+                if (isMultiplayer && socket) {
+                    document.getElementById('matchmaking-overlay').style.display = 'flex';
+                    socket.emit('join-room', { gameType: type });
+                }
+            }, 300);
         }
 
         function resizeCanvas() {
@@ -1195,9 +1335,9 @@
             document.querySelector('.back-btn').style.display = 'none';
 
             overlay.innerHTML = ` 
-                <div class="chess-container chess-wood-theme"> 
+                <div class="chess-container chess-wood-theme" style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 40px; position: relative; width: 100vw; height: 100vh; padding: 20px;" > 
                     
-                    <!-- Side Controls -->
+                    <!-- Side Controls (As per image) -->
                     <div class="side-controls">
                         <button class="round-btn" onclick="backToHub()" title="Back to Hub">
                             <span>&#x21B2;</span>
@@ -1213,8 +1353,8 @@
                         </button>
                     </div>
 
-                    <div class="chess-main-view"> 
-                        <div class="chess-info"> 
+                    <div class="chess-main-view" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0;" > 
+                        <div class="chess-info" style="background: rgba(0,0,0,0.7); border: 2px solid #facc15; width: var(--board-size); height: 50px; padding: 0 15px; border-radius: 12px 12px 0 0;" > 
                             <div style="display: flex; align-items: center; gap: 15px;" > 
                                 <div style="width: 36px; height: 36px; border: 2px solid #ef4444; border-radius: 6px; overflow: hidden; background: #1e293b;">
                                     <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=chess_master" style="width: 100%; height: 100%; object-fit: cover;">
@@ -1229,7 +1369,7 @@
                         
                         <div id="myBoard"></div> 
                         
-                        <div class="chess-info"> 
+                        <div class="chess-info" style="background: rgba(0,0,0,0.7); border: 2px solid #facc15; width: var(--board-size); height: 50px; padding: 0 15px; border-radius: 0 0 12px 12px;" > 
                             <div style="display: flex; align-items: center; gap: 15px;" > 
                                 <div style="width: 36px; height: 36px; border: 2px solid #22c55e; border-radius: 6px; overflow: hidden; background: #1e293b;">
                                     <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=player_me" style="width: 100%; height: 100%; object-fit: cover;">
@@ -1245,9 +1385,9 @@
                         <div id="game-status" class="status-badge" style="background: #5d4037; border: 1px solid #facc15; color: #facc15; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;" >Waiting...</div> 
                     </div> 
 
-                    <div class="move-history-panel"> 
+                    <div class="move-history-panel" style="display: flex; flex-direction: column; gap: 10px; flex: 1; max-width: 250px; margin-right: 20px;" > 
                         <h3 style="margin: 0; font-size: 1rem; opacity: 0.6; color: white; text-align: center;" >MOVE HISTORY</h3> 
-                        <div id="move-list" class="move-history"></div> 
+                        <div id="move-list" class="move-history" style="background: rgba(0,0,0,0.6); border: 1px solid #5d4037; width: 100%; height: var(--board-size);" ></div> 
                     </div> 
 
                     <!-- Settings Modal -->
@@ -1703,7 +1843,7 @@
         }
 
         // Multiplayer Hook
-        function setupChessSocket() {
+        function setupMultiplayerSocket() {
             if (!socket) return;
 
             // Remove existing listeners to prevent duplicates
@@ -1712,6 +1852,8 @@
             socket.off('chess-move');
             socket.off('chess-game-over');
             socket.off('player-disconnected');
+            socket.off('racing-update');
+            socket.off('carrom-move');
 
             socket.on('role-assignment', (data) => {
                 myRole = data.role;
@@ -1743,6 +1885,20 @@
 
             socket.on('player-disconnected', (data) => {
                 showGameOver('Opponent Left', `${data.name} disconnected.`);
+            });
+
+            // Racing Multiplayer Sync
+            socket.on('racing-update', (data) => {
+                if (window.RacingGame.instance && window.RacingGame.instance.running) {
+                    window.RacingGame.instance.handleOpponentUpdate(data);
+                }
+            });
+
+            // Carrom Multiplayer Sync
+            socket.on('carrom-move', (data) => {
+                if (carromEngine && carromEngine.active) {
+                    carromEngine.handleMoveFromServer(data);
+                }
             });
         }
 

@@ -54,6 +54,7 @@ class CarromEngine {
         this.canvas = canvas;
         this.overlay = overlay;
         this.ctx = ctx;
+        this.active = true;
 
         // Calculate dimensions
         const size = Math.min(canvas.width, canvas.height) * 0.75;
@@ -78,6 +79,7 @@ class CarromEngine {
     }
 
     stop() {
+        this.active = false;
         if (this.animationId) cancelAnimationFrame(this.animationId);
 
         if (this.canvas) {
@@ -106,6 +108,27 @@ class CarromEngine {
         if (this.overlay) {
             this.overlay.innerHTML = '';
             this.overlay.style.pointerEvents = "none";
+        }
+    }
+
+    handleMoveFromServer(data) {
+        if (!this.active) return;
+        this.state.striker.x = data.strikerX;
+        this.state.striker.y = data.strikerY;
+        this.state.aimAngle = data.aimAngle;
+        this.state.power = data.power;
+        this.shootStriker();
+    }
+
+    broadcastMove() {
+        if (window.parent && window.parent.socket && window.parent.isMultiplayer) {
+            window.parent.socket.emit('carrom-move', {
+                roomId: window.parent.currentRoomId,
+                strikerX: this.state.striker.x,
+                strikerY: this.state.striker.y,
+                aimAngle: this.state.aimAngle,
+                power: this.state.power
+            });
         }
     }
 
@@ -356,6 +379,12 @@ class CarromEngine {
             this.state.aiming = false;
             return;
         }
+
+        // Broadcast if multiplayer
+        if (this.active && this.state.activePlayer === 1 && window.parent && window.parent.isMultiplayer) {
+            this.broadcastMove();
+        }
+
         const force = this.state.power / 1.8;
         this.state.striker.vx = Math.cos(this.state.aimAngle) * force;
         this.state.striker.vy = Math.sin(this.state.aimAngle) * force;
@@ -527,7 +556,7 @@ class CarromEngine {
         this.updateHUD();
         this.checkGameOver();
 
-        if (this.state.activePlayer === 2) {
+        if (this.state.activePlayer === 2 && !(window.parent && window.parent.isMultiplayer)) {
             setTimeout(() => this.aiTurn(), 1000);
         }
     }
