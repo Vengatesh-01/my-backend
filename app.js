@@ -53,7 +53,7 @@ app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
 app.get('/api/debug-version', (req, res) => {
   res.json({
-    version: '1.0.1-auth-fix-v3',
+    version: '1.0.1-auth-fix-v4',
     hasSecret: !!process.env.JWT_SECRET,
     hasCloudinary: !!process.env.CLOUDINARY_CLOUD_NAME
   });
