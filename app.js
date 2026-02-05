@@ -40,6 +40,8 @@ app.use(cors({
 }));
 app.use(express.json());
 
+const { seedReels } = require('./controllers/reelController');
+
 /* ================= HEALTH ================= */
 
 const healthHandler = (req, res) => {
