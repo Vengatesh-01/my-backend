@@ -14,7 +14,7 @@ const protect = async (req, res, next) => {
             console.log('Auth Middleware Token:', token ? 'Token present' : 'No token');
 
             // Verify token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey_change_in_production_12345');
 
             // Get user from the token
             req.user = await User.findById(decoded.id).select('-password');
@@ -44,7 +44,7 @@ const optionalProtect = async (req, res, next) => {
     ) {
         try {
             token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey_change_in_production_12345');
             req.user = await User.findById(decoded.id).select('-password');
             next();
         } catch (error) {
